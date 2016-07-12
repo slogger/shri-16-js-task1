@@ -19,7 +19,6 @@ function Door0(number, onUnlock) {
         this.popup.querySelector('.door-riddle__button_1'),
         this.popup.querySelector('.door-riddle__button_2')
     ];
-    doorOpen(this);
     buttons.forEach(function(b) {
         b.addEventListener('pointerdown', _onButtonPointerDown.bind(this));
         b.addEventListener('pointerup', _onButtonPointerUp.bind(this));
@@ -70,7 +69,6 @@ Door0.prototype.constructor = DoorBase;
  */
 function Door1(number, onUnlock) {
     DoorBase.apply(this, arguments);
-    doorOpen(this);
     this.state = {
         magicWord: true
     }
@@ -188,7 +186,6 @@ Door1.prototype.constructor = DoorBase;
  */
 function Door2(number, onUnlock) {
     DoorBase.apply(this, arguments);
-    doorOpen(this);
     this.state = {
         light: 0,
         currentStep: 0
