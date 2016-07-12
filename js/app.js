@@ -19,7 +19,6 @@ function App(el) {
      */
     function onUnlock() {
         var previousUnlocked;
-
         // Даем открыть следующую дверь
         for (var i = 0; i < doors.length; i++) {
             if (!doors[i].isLocked) {

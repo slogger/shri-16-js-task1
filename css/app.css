@@ -1,23 +1,21 @@
 html, body {
     min-height: 100%;
 }
-
 body {
     background-color: #ACC0C1;
+    -webkit-user-select: none;
+    user-select: none;
 }
-
 .container {
     position: relative;
     max-width: 400px;
     margin: 0 auto;
 }
-
 @media (min-width: 450px) {
     .container {
         box-shadow: 1px 1px 20px #666;
     }
 }
-
 .level {
     position: relative;
     min-width: 320px;
@@ -25,13 +23,11 @@ body {
     background-position: left top;
     background-repeat: no-repeat;
 }
-
 .level_0 {
     background-image: url(../img/level_0_bg.jpg);
     height: 180px;
     position: relative;
 }
-
 .level_0:after {
     content: ' ';
     display: block;
@@ -44,143 +40,327 @@ body {
     background-size: contain;
     pointer-events: none;
 }
-
 .level_1 {
     background-image: url(../img/level_1_bg.png);
     height: 235px;
 }
-
 .level_2 {
     background-image: url(../img/level_2_bg.png);
     height: 235px;
 }
-
 .level_3 {
     background-image: url(../img/level_3_bg.png);
     height: 235px;
 }
-
 .level_4 {
     background-image: url(../img/level_4_bg.png);
     height: 75px;
 }
-
 .door {
     position: absolute;
     bottom: 0;
     background: url(../img/door.png) no-repeat top left;
     width: 64px;
     height: 100px;
-
     cursor: pointer;
 }
-
 .door_locked {
     background: url(../img/door_locked.png) no-repeat top left;
 }
-
 .door_disabled {
     opacity: .7;
 }
-
 .door_level_0 {
     right: 2%;
 }
-
 .door_level_1 {
     left: 2%;
 }
-
 .door_level_2 {
     right: 2%;
 }
-
 .box {
     position: absolute;
     left: 10%;
     bottom: 0;
-
     background: url('../img/box.png') no-repeat top left;
     width: 32px;
     height: 32px;
-
     cursor: pointer;
 }
-
 .popup {
     position: fixed;
     left: 0;
     right: 0;
     bottom: 0;
     top: 0;
-
-    background-color: rgba(0,0,0,.3);
+    background-color: rgba(0, 0, 0, .3);
     transition: opacity .3s;
-
     display: flex;
     align-items: center;
     justify-content: center;
 }
-
 .popup_hidden {
     pointer-events: none;
     opacity: 0;
 }
-
 .popup__content {
     position: relative;
     width: 100%;
     height: 100%;
     max-width: 400px;
-
     background: #000 url(../img/door_level_0.jpg) no-repeat center;
     background-size: cover;
 }
-
 .popup__close {
     position: absolute;
     top: 16px;
     right: 16px;
     font-size: 24px;
     color: #fff;
-
     cursor: pointer;
 }
-
 .popup__content_level_0 {
     /* Можно поставить какую-нибудь свою картинку двери на бек */
 }
-
 .popup__content_level_1 {
     /* Можно поставить какую-нибудь свою картинку двери на бек */
 }
-
 .popup__content_level_2 {
     /* Можно поставить какую-нибудь свою картинку двери на бек */
 }
 .popup__content_level_3 {
     background-image: url(../img/door__box.png);
     background-size: contain;
+    background-position-y: bottom;
 }
-
-.door-riddle {
+.door-latch, .door-step, .door-riddle {
     display: flex;
     align-items: center;
     justify-content: space-around;
     height: 100%;
 }
-
-.door-riddle__button {
+.door-latch {
+    flex-direction: column;
+    justify-content: center;
+}
+.door-step {
+    flex-direction: column;
+}
+.door-step-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    max-width: calc(66px *3);
+    margin: 0 auto;
+}
+.door-step__button, .door-riddle__button {
     width: 64px;
     height: 64px;
     border-radius: 64px;
     background-color: #583319;
     border: 1px solid #F3E9E0;
     box-shadow: 3px 3px 3px rgba(0, 0, 0, .4);
-
     transition: background-color .3s;
 }
+.door-step__button {
+    border-radius: 0;
+}
+.door-step__button_0 {
+    border-radius: 50% 0 0;
+}
+.door-step__button_2 {
+    border-radius: 0 50% 0 0;
+}
+.door-step__button_6 {
+    border-radius: 0 0 0 50%;
+}
+.door-step__button_8 {
+    border-radius: 0 0 50% 0;
+}
+[data-step="0"].door-step__button {
+    background: rgb(225, 193, 158);
+}
+[data-step="1"].door-step__button {
+    background: rgb(168, 121, 81);
+}
+[data-step="2"].door-step__button {
+    background: rgb(188, 106, 51);
+}
+[data-step="3"].door-step__button {
+    background: rgb(115, 64, 32);
+}
+[data-step="4"].door-step__button {
+    background: rgb(93, 46, 17);
+}
+[data-step="5"].door-step__button {
+    background: rgb(51, 23, 6);
+}
+.door-step-wrapper--light-on .door-step__button.door-step--light-only {
+    pointer-events: none;
+    background-color: #dca;
+}
+.door-step__indicator {
+    background-color: hsl(44, 60%, 50%);
+    border-radius: 50%;
+}
+.door-step__button_pressed, .door-riddle__button_pressed {
+    background-color: #F3E5D9 !important;
+}
+.latch {
+    width: 10rem;
+    appearance: none;
+    flex-basis: 400px;
+}
+.latch:active::-webkit-slider-thumb {
+    appearance: none;
+    transform: scale(1.1);
+    cursor: -webkit-grabbing;
+    cursor: -moz-grabbing;
+}
+.latch:focus {
+    outline: none;
+}
+.door-magic__button {
+    background: transparent;
+    border-color: transparent;
+    flex-basis: 100px;
+}
+.latch::-webkit-slider-thumb {
+    appearance: none;
+    display: block;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    background: #5990DD;
+    transform-origin: 50% 50%;
+    transform: scale(1);
+    transition: transform ease-out 100ms;
+    cursor: -webkit-grab;
+    cursor: -moz-grab;
+}
+.latch::-webkit-slider-runnable-track {
+    height: 1rem;
+    padding: .25rem;
+    box-sizing: content-box;
+    border-radius: 1rem;
+    background-color: #DDE0E3;
+}
+/** {
+    box-sizing: border-box;
+}
+body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    font-family: 'Avenir Next', Avenir, sans-serif;
+    font-weight: 500;
+    font-size: 20px;
+    color: #555;
+}*/
+canvas {
+    cursor: move;
+    display: block;
+    /*position: absolute;*/
+    max-width: 100%;
+    min-width: 400px;
+    /*min-height: 400px;*/
+    /*flex-grow: 1;*/
+    /*left: 0;
+    top: 0;*/
+}
+.is-cub-hovered, .is-cub-hovered canvas {
+    cursor: -webkit-grab;
+    cursor: grab;
+}
+.is-cub-dragging, .is-cub-dragging canvas {
+    cursor: -webkit-grabbing;
+    cursor: grabbing;
+}
+.instruction {
+    text-align: center;
+    color: white;
+    /*flex-grow: 1;*/
+}
+.button {
+    font-family: 'Avenir Next', Avenir, sans-serif;
+    font-weight: 500;
+    font-size: 20px;
+    padding: 5px 15px;
+    margin: 10px;
+    background: #BBB;
+    color: white;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+}
+.button:hover {
+    background: #09F;
+}
+.top-bar {
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+.level-select-button {
+    position: relative;
+    z-index: 2;
+    /* above canvas */
+}
+.next-level-button {
+    /*position: absolute;*/
+    /*left: 50%;*/
+    /*-webkit-transform: translateX(-110px) scale(0.5);*/
+    /*transform: translateX(-110px) scale(0.5);*/
+    opacity: 0;
+    background: #583319;
+    width: 200px;
+    height: 80px;
+    pointer-events: none;
+    /*flex-grow: 1;*/
+    /*-webkit-transition: -webkit-transform 0.2s, opacity 0.2s;*/
+    /*transition: transform 0.2s, opacity 0.2s;*/
+}
+.next-level-button:hover {
+    background: #583319;
+}
+.next-level-button.is-open {
+    display: inline-block;
+    pointer-events: auto;
+    opacity: 1;
+}
 
-.door-riddle__button_pressed {
-    background-color: #F3E5D9;
+/* ---- level list ---- */
+
+.level-list {
+    position: absolute;
+    background: #EEE;
+    width: 100%;
+    min-height: 100%;
+    left: 0;
+    top: 0;
+    margin: 0;
+    list-style: none;
+    padding: 10px;
+    z-index: 3;
+    /* above canvas, level select button */
+    left: -100%;
+    transition: left 0.2s;
+    display: none;
+}
+.level-list.is-open {
+    left: 0;
+}
+
+.level-list__item.did-complete .level-list__item__check {
+    display: block;
+}
+
+/* ---- level pres ---- */
+.level-list__item__check,
+.levels {
+    display: none;
+}
+.wrap {
+    width: 400px;
+    height: 400px;
 }
