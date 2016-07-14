@@ -56,6 +56,11 @@ body {
     background-image: url(../img/level_4_bg.png);
     height: 75px;
 }
+
+.door-riddle__button_0 {
+    will-change: transform;
+}
+
 .door {
     position: absolute;
     bottom: 0;
@@ -245,28 +250,12 @@ body {
     border-radius: 1rem;
     background-color: #DDE0E3;
 }
-/** {
-    box-sizing: border-box;
-}
-body {
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-    font-family: 'Avenir Next', Avenir, sans-serif;
-    font-weight: 500;
-    font-size: 20px;
-    color: #555;
-}*/
+
 canvas {
     cursor: move;
     display: block;
-    /*position: absolute;*/
     max-width: 100%;
     min-width: 400px;
-    /*min-height: 400px;*/
-    /*flex-grow: 1;*/
-    /*left: 0;
-    top: 0;*/
 }
 .is-cub-hovered, .is-cub-hovered canvas {
     cursor: -webkit-grab;
@@ -279,7 +268,6 @@ canvas {
 .instruction {
     text-align: center;
     color: white;
-    /*flex-grow: 1;*/
 }
 .button {
     font-family: 'Avenir Next', Avenir, sans-serif;
@@ -307,18 +295,11 @@ canvas {
     /* above canvas */
 }
 .next-level-button {
-    /*position: absolute;*/
-    /*left: 50%;*/
-    /*-webkit-transform: translateX(-110px) scale(0.5);*/
-    /*transform: translateX(-110px) scale(0.5);*/
     opacity: 0;
     background: #583319;
     width: 200px;
     height: 80px;
     pointer-events: none;
-    /*flex-grow: 1;*/
-    /*-webkit-transition: -webkit-transform 0.2s, opacity 0.2s;*/
-    /*transition: transform 0.2s, opacity 0.2s;*/
 }
 .next-level-button:hover {
     background: #583319;
@@ -329,37 +310,6 @@ canvas {
     opacity: 1;
 }
 
-/* ---- level list ---- */
-
-.level-list {
-    position: absolute;
-    background: #EEE;
-    width: 100%;
-    min-height: 100%;
-    left: 0;
-    top: 0;
-    margin: 0;
-    list-style: none;
-    padding: 10px;
-    z-index: 3;
-    /* above canvas, level select button */
-    left: -100%;
-    transition: left 0.2s;
-    display: none;
-}
-.level-list.is-open {
-    left: 0;
-}
-
-.level-list__item.did-complete .level-list__item__check {
-    display: block;
-}
-
-/* ---- level pres ---- */
-.level-list__item__check,
-.levels {
-    display: none;
-}
 .wrap {
     width: 400px;
     height: 400px;

@@ -12,48 +12,110 @@ function doorOpen(door) {
     // }.bind(door));
 }
 
+function addHandlers(elem, startAction, endAction, ctx, type) {
+    type = type || 'pointer'
+    elem.addEventListener(type + 'down', startAction.bind(ctx));
+    elem.addEventListener(type + 'up', endAction.bind(ctx));
+    elem.addEventListener(type + 'cancel', endAction.bind(ctx));
+    elem.addEventListener(type + 'leave', endAction.bind(ctx));
+}
+
 function Door0(number, onUnlock) {
     DoorBase.apply(this, arguments);
     doorOpen(this)
     var buttons = [
-        this.popup.querySelector('.door-riddle__button_0'),
-        this.popup.querySelector('.door-riddle__button_1'),
-        this.popup.querySelector('.door-riddle__button_2')
+        this.popup.querySelector('.door-riddle__button_0')
     ];
+    var pointers = {};
     buttons.forEach(function(b) {
-        b.addEventListener('pointerdown', _onButtonPointerDown.bind(this));
-        b.addEventListener('pointerup', _onButtonPointerUp.bind(this));
-        b.addEventListener('pointercancel', _onButtonPointerUp.bind(this));
-        b.addEventListener('pointerleave', _onButtonPointerUp.bind(this));
+        if ('ontouchstart' in document.documentElement) {
+            b.addEventListener('pointerdown', _onButtonPointerDownWithTouch.bind(this))
+        } else {
+            addHandlers(b, _onButtonPointerDownWithoutTouch, _onButtonPointerUpWithoutTouch, this);
+        }
     }.bind(this));
 
-    function _onButtonPointerDown(e) {
-        console.log(e);
-        e.target.classList.add('door-riddle__button_pressed');
-        checkCondition.apply(this);
+    function _onButtonPointerDownWithoutTouch(e) {
+        this.unlock();
     }
 
-    function _onButtonPointerUp(e) {
-        console.log(e);
-        console.log(!('ontouchstart' in document.documentElement));
+    function _onButtonPointerUpWithoutTouch(e) {
         if ('ontouchstart' in document.documentElement) {
             e.target.classList.remove('door-riddle__button_pressed');
         }
     }
 
-    /**
-     * Проверяем, можно ли теперь открыть дверь
-     */
-    function checkCondition() {
-        var isOpened = true;
-        buttons.forEach(function(b) {
-            if (!b.classList.contains('door-riddle__button_pressed')) {
-                isOpened = false;
-            }
+    function _onButtonPointerDownWithTouch(e) {
+        var buttonDims = buttons[0].getBoundingClientRect();
+        var buttonCenter = {
+            x: buttonDims.left + (buttonDims.width / 2),
+            y: buttonDims.top + (buttonDims.height / 2)
+        };
+        pointers[e.pointerId] = {
+            buttonCenter: buttonCenter,
+
+            startVector: {
+                x: e.clientX - buttonCenter.x,
+                y: e.clientY - buttonCenter.y
+            },
+            onPointerMove: _onButtonPointerMoveWithTouch.bind(this, e.pointerId),
+            onPointerUp: _onButtonPointerUpWithTouch.bind(this, e.pointerId)
+        }
+
+        this.popup.addEventListener('pointermove', pointers[e.pointerId].onPointerMove);
+        this.popup.addEventListener('pointerup', pointers[e.pointerId].onPointerUp);
+    }
+
+    function _onButtonPointerUpWithTouch(pointerId, e) {
+        if (pointerId == e.pointerId) {
+           this.popup.removeEventListener('pointermove', pointers[pointerId].onPointerMove);
+           this.popup.removeEventListener('pointerup', pointers[pointerId].onPointerUp);
+           pointers[pointerId].k = 0;
+           buttons[0].style.transform = 'scale(4)';
+       }
+    }
+
+    function _onButtonPointerMoveWithTouch(pointerId, e) {
+        if (pointerId !== e.pointerId) return;
+
+        var pointer = pointers[pointerId];
+
+        pointer.currVector = {
+            x: e.clientX - pointer.buttonCenter.x,
+            y: e.clientY - pointer.buttonCenter.y,
+        }
+
+        var a = pointer.startVector;
+        var b = pointer.currVector;
+
+        var angle =
+            Math.acos((a.x*b.x + a.y*b.y) /
+                (Math.sqrt(a.x*a.x + a.y*a.y) * Math.sqrt(b.x*b.x + b.y*b.y)));
+
+        pointer.k = angle / Math.PI;
+
+        var getKoef = function(pointers) {
+            // Object.values
+            var vals = Object.keys(pointers).map(function (key) {
+                return pointers[key];
+            });
+
+            var sortedPointers = vals.sort(function(a, b) {
+                return a.k - b.k;
+            })
+
+            return sortedPointers[0].k;
+        }
+
+        k = getKoef(pointers);
+
+        if (Object.keys(pointers).length < 2) return;
+
+        window.requestAnimationFrame(function() {
+            buttons[0].style.transform = 'scale(' + (4 - 4*k) + ')';
         });
 
-        // Если все три кнопки зажаты одновременно, то откроем эту дверь
-        if (isOpened) {
+        if (k >= 0.95) {
             this.unlock();
         }
     }
@@ -122,10 +184,7 @@ function Door1(number, onUnlock) {
             inputRange.value = 0;
         };
 
-        inputRange.addEventListener('pointerdown', unlockStartHandler);
-        inputRange.addEventListener('pointerup', unlockEndHandler);
-        inputRange.addEventListener('pointercancel', unlockEndHandler);
-        inputRange.addEventListener('pointerleave', unlockEndHandler);
+        addHandlers(inputRange, unlockStartHandler, unlockEndHandler, inputRange, 'mouse')
     }
 
     function initRecognizer() {
@@ -138,6 +197,11 @@ function Door1(number, onUnlock) {
             recognizer.continuous = true;
             recognizer.interimResults = false;
             recognizer.onresult = recognizerHandler;
+            recognizer.onerror = function(e){
+                if (e.error = 'not-allowed') {
+                    door.state.magicWord = true;
+                }
+            }
             recognizer.start()
         }
     }
@@ -187,10 +251,7 @@ function Door2(number, onUnlock) {
             node: b,
             step: parseInt(b.getAttribute('data-step')) || 0
         })
-        b.addEventListener('pointerdown', _onButtonPointerDown.bind(door));
-        b.addEventListener('pointerup', _onButtonPointerUp.bind(door));
-        b.addEventListener('pointercancel', _onButtonPointerUp.bind(door));
-        b.addEventListener('pointerleave', _onButtonPointerUp.bind(door));
+        addHandlers(b, _onButtonPointerDown, _onButtonPointerUp, door)
     })
     function _onButtonPointerDown(e) {
         var currentBtnStep = parseInt(e.target.getAttribute('data-step')) || 0;
@@ -217,7 +278,6 @@ function Door2(number, onUnlock) {
                 flag = false;
             }
         });
-        console.log(flag, door.state.currentStep, currentStepBtns.length);
         if (flag) {
             door.state.currentStep = door.state.currentStep+1;
         }
