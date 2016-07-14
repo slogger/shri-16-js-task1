@@ -7,9 +7,9 @@
  */
 
 function doorOpen(door) {
-    setTimeout(function() {
-        this.unlock()
-    }.bind(door));
+    // setTimeout(function() {
+    //     this.unlock()
+    // }.bind(door));
 }
 
 function Door0(number, onUnlock) {
