@@ -70,7 +70,7 @@ function Door0(number, onUnlock) {
         if (pointerId == e.pointerId) {
            this.popup.removeEventListener('pointermove', pointers[pointerId].onPointerMove);
            this.popup.removeEventListener('pointerup', pointers[pointerId].onPointerUp);
-           pointers[pointerId].k = 0;
+           delete pointers[pointerId]
            buttons[0].style.transform = 'scale(4)';
        }
     }
@@ -108,7 +108,6 @@ function Door0(number, onUnlock) {
         }
 
         k = getKoef(pointers);
-
         if (Object.keys(pointers).length < 2) return;
 
         window.requestAnimationFrame(function() {
@@ -152,6 +151,7 @@ function Door1(number, onUnlock) {
 
         function unlockStartHandler(event) {
             window.cancelAnimationFrame(rafID);
+            console.log(event);
             if (this.value) {
                 currValue = +this.value;
             }
@@ -184,7 +184,10 @@ function Door1(number, onUnlock) {
             inputRange.value = 0;
         };
 
-        addHandlers(inputRange, unlockStartHandler, unlockEndHandler, inputRange, 'mouse')
+        inputRange.addEventListener('mousedown', unlockStartHandler);
+        inputRange.addEventListener('mouseup', unlockEndHandler);
+        inputRange.addEventListener('mousecancel', unlockEndHandler);
+        inputRange.addEventListener('mouseleave', unlockEndHandler);
     }
 
     function initRecognizer() {
@@ -210,7 +213,6 @@ function Door1(number, onUnlock) {
         var index = e.resultIndex;
         var magicWord = 'сезам откройся';
         var result = e.results[index][0].transcript.trim();
-        console.log(result);
         if (result.toLowerCase().indexOf(magicWord)+1 !== 0) {
             door.state.magicWord = true;
             recognizer.stop();

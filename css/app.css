@@ -214,7 +214,6 @@ body {
 .latch {
     width: 10rem;
     appearance: none;
-    flex-basis: 400px;
 }
 .latch:active::-webkit-slider-thumb {
     appearance: none;
