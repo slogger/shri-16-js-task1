@@ -1,5 +1,4 @@
 function GameInit(wincallback) {
-    console.log('INIT GAME');
     var docElem = document.documentElement;
     var canvas = document.querySelector('canvas');
     var ctx = canvas.getContext('2d');
@@ -8,7 +7,7 @@ function GameInit(wincallback) {
     var rootHeight = canvas.parentElement.clientHeight;
 
     var canvasSize = Math.min(rootWidth, rootHeight);
-    // console.log(canvasSize);
+
     var canvasWidth = canvas.width = rootWidth * 2;
     var canvasHeight = canvas.height = rootHeight * 2;
     var maze;
@@ -20,113 +19,64 @@ function GameInit(wincallback) {
     var isKeyDragging = false;
     var winAnim;
 
-    // ----- config ----- //
-
     var gridSize = Math.min(40, canvasSize / 12);
     var mazeCenter = {
         x: canvasWidth / 4,
         y: Math.min(gridSize * 8, canvasHeight / 4)
     };
-    // ----- instruction ----- //
 
-    var instructElem = document.querySelector('.instruction');
-    instructElem.style.top = (mazeCenter.y + gridSize * 5.5) + 'px';
-
-    // ----- build level select, levels array ----- //
-
-    var levelList = document.querySelector('.level-list');
-    var levelsElem = document.querySelector('.levels');
-    var levels = [];
-
-    (function() {
-        var levelPres = levelsElem.querySelectorAll('pre');
-        var fragment = document.createDocumentFragment();
-        for (var i = 0; i < levelPres.length; i++) {
-            var pre = levelPres[i];
-            var listItem = document.createElement('li');
-            listItem.className = 'level-list__item';
-            var id = pre.id;
-            listItem.innerHTML = '<span class="level-list__item__number">' + (i + 1) +
-                '</span> <span class="level-list__item__blurb">' +
-                pre.getAttribute('data-blurb') + '</span>' +
-                '<span class="level-list__item__check">✔</span>';
-            listItem.setAttribute('data-id', id);
-            fragment.appendChild(listItem);
-            levels.push(id);
-        }
-
-        levelList.appendChild(fragment);
-
-    })();
-
-    var nextLevelButton = document.querySelector('.next-level-button');
-    nextLevelButton.style.top = (mazeCenter.y + gridSize * 5.5) + 'px';
-
-    // ----- level list ----- //
-
-    levelList.addEventListener('click', function(event) {
-        var item = getParent(event.target, '.level-list__item');
-        if (!item) {
-            return;
-        }
-        // load level from id
-        var id = item.getAttribute('data-id');
-        loadLevel(id);
-    });
-
-    function getParent(elem, selector) {
-        var parent = elem;
-        console.log(elem, parent);
-        while (parent != document.body) {
-            if (parent.matches(selector)) {
-                return parent;
-            }
-            parent = parent.parentNode;
+    var levelList = {
+        // *=.=.
+        //     !
+        // . . .
+        //     !
+        // @=.=.
+        'level1': {
+            textContent: '*=.=.\n    !\n. . .\n    !\n@=.=.'
+        },
+        // * . .
+        //     !
+        // . . .
+        //     !
+        // @=.=.
+        'level2': {
+            textContent: '* . .\n    !\n. . .\n    !\n@=.=.'
+        },
+        // @=. .
+        //
+        // . . .
+        //     !
+        // *=. .
+        'level3': {
+            textContent: '@=. .\n      \n. . .\n    !\n*=. .'
         }
     }
+    var levels = Object.keys(levelList);
 
-    // ----- load level ----- //
+
+    var nextLevelButton = document.querySelector('.next-level-button');
 
     function loadLevel(id) {
-        var pre = levelsElem.querySelector('#' + id);
+        var pre = levelList[id];
 
         maze = new Maze();
         maze.id = id;
 
-        if (!pre) {
-            console.error('pre not found for ' + id);
-            return;
-        }
-
-        // load maze level from pre text
         maze.loadText(pre.textContent);
-        // close ui
-        levelList.classList.remove('is-open');
+
         nextLevelButton.classList.remove('is-open');
         window.scrollTo(0, 0);
-        // highlight list
-        var previousItem = levelList.querySelector('.is-playing');
-        if (previousItem) {
-            previousItem.classList.remove('is-playing');
-        }
-        levelList.querySelector('[data-id="' + id + '"]').classList.add('is-playing');
     }
-
-    // ----- init ----- //
 
     loadLevel(levels[0]);
 
     canvas.addEventListener('pointermove', onHoverMousemove);
     animate();
 
-    // -------------------------- drag rotation -------------------------- //
-
     var canvasLeft = canvas.offsetLeft;
     var canvasTop = canvas.offsetTop;
 
     var pointerBehavior;
-
-    // ----- pointerBehavior ----- //
 
     var keyDrug = {};
     var mazeRotate = {};
@@ -140,7 +90,6 @@ function GameInit(wincallback) {
         pointerBehavior.pointerDown(event, event);
     })
 
-
     function getIsInsideKey(pointer) {
         var position = getCanvasMazePosition(pointer);
         var KeyDeltaX = Math.abs(position.x - Key[maze.orientation].x * gridSize);
@@ -152,13 +101,6 @@ function GameInit(wincallback) {
     function getCanvasMazePosition(pointer) {
         var canvasX = pointer.pageX - canvasLeft -parseFloat(window.getComputedStyle(document.querySelector('.app')).marginLeft);
         var canvasY = pointer.pageY - canvasTop;
-        console.log({
-            pointer: pointer,
-            l: canvasLeft,
-            t: canvasTop,
-            x: canvasX - mazeCenter.x,
-            y: canvasY - mazeCenter.y,
-        });
         return {
             x: canvasX - mazeCenter.x,
             y: canvasY - mazeCenter.y,
@@ -171,11 +113,10 @@ function GameInit(wincallback) {
     });
 
     canvas.addEventListener('pointermove', function(event) {
-            if (click) {
-                pointerBehavior.pointerMove(event, event);
-            }
-        })
-        // ----- keyDrug ----- //
+        if (click) {
+            pointerBehavior.pointerMove(event, event);
+        }
+    })
 
     var dragStartPosition, dragStartPegPosition, rotatePointer;
 
@@ -210,28 +151,26 @@ function GameInit(wincallback) {
         keyDrugMove = null;
         docElem.classList.remove('is-Key-dragging');
         isKeyDragging = false;
-        // set at peg
+
         Key.setOffset({
             x: 0,
             y: 0
         }, maze.orientation);
-        // check level complete
+
         if (Key.peg.x == maze.goalPosition.x && Key.peg.y == maze.goalPosition.y) {
             completeLevel();
         }
     };
 
-    // ----- rotate ----- //
-
     var dragStartAngle, dragStartMazeAngle, moveAngle;
     var mazeRotate = {};
 
 
-    mazeRotate.pointerDown = function(event, pointer) {
-        dragStartAngle = moveAngle = getDragAngle(pointer);
+    mazeRotate.pointerDown = function(event) {
+        dragStartAngle = moveAngle = getDragAngle(event);
         dragStartMazeAngle = maze.flyWheel.angle;
         dragAngle = dragStartMazeAngle;
-        rotatePointer = pointer;
+        rotatePointer = event;
     };
 
     function getDragAngle(pointer) {
@@ -239,9 +178,9 @@ function GameInit(wincallback) {
         return normalizeAngle(Math.atan2(position.y, position.x));
     }
 
-    mazeRotate.pointerMove = function(event, pointer) {
-        rotatePointer = pointer;
-        moveAngle = getDragAngle(pointer);
+    mazeRotate.pointerMove = function(event) {
+        rotatePointer = event;
+        moveAngle = getDragAngle(event);
         var deltaAngle = moveAngle - dragStartAngle;
         dragAngle = normalizeAngle(dragStartMazeAngle + deltaAngle);
     };
@@ -251,21 +190,15 @@ function GameInit(wincallback) {
         rotatePointer = null;
     };
 
-
-    // ----- animate ----- //
-
     function animate() {
         update();
         render();
         requestAnimationFrame(animate);
     }
 
-    // ----- update ----- //
-
     function update() {
-        // drag Key
         dragKey();
-        // rotate grid
+
         if (dragAngle) {
             maze.flyWheel.setAngle(dragAngle);
         } else {
@@ -289,11 +222,9 @@ function GameInit(wincallback) {
             y: dragStartPegPosition.y + keyDrugMove.y,
         };
 
-        // set peg position
         var dragPeg = getDragPeg(segments, dragPosition);
         Key.setPeg(dragPeg, maze.orientation);
 
-        // set drag offset
         var keyDrugPosition = getDragPosition(segments, dragPosition);
 
         var KeyPosition = getKeyPosition();
@@ -302,7 +233,6 @@ function GameInit(wincallback) {
             y: keyDrugPosition.y - KeyPosition.y,
         };
         Key.setOffset(offset, maze.orientation);
-
     }
 
     function getKeyPosition() {
@@ -324,7 +254,6 @@ function GameInit(wincallback) {
             return getSegmentDragPosition(segments[0], dragPosition);
         }
 
-        // get closest segments positions
         var dragCandidates = segments.map(function(segment) {
             var position = getSegmentDragPosition(segment, dragPosition);
             return {
@@ -378,7 +307,6 @@ function GameInit(wincallback) {
         });
 
         var pegCandidates = pegs.map(function(pegKey) {
-            // revert string back to object with integers
             var parts = pegKey.split(',');
             var peg = {
                 x: parseInt(parts[0], 10),
@@ -406,92 +334,48 @@ function GameInit(wincallback) {
     }
 
     function addPegPoint(point, pegs) {
-        // use strings to prevent dupes
         var key = point.x + ',' + point.y;
         if (pegs.indexOf(key) == -1) {
             pegs.push(key);
         }
     }
 
-    // ----- hover ----- //
 
     function onHoverMousemove(event) {
         var isInsideKey = getIsInsideKey(event);
         if (isInsideKey == isKeyHovered) {
             return;
         }
-        // change
         isKeyHovered = isInsideKey;
         var changeClass = isInsideKey ? 'add' : 'remove';
         docElem.classList[changeClass]('is-Key-hovered');
     }
 
-    // ----- render ----- //
-
     function render() {
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
         ctx.save();
         ctx.scale(2, 2);
-        renderRotateHandle();
-        // maze
+
         maze.render(ctx, mazeCenter, gridSize, maze.flyWheel.angle);
-        // win animation
+
         if (winAnim) {
             winAnim.render(ctx);
         }
-        // Key
+
         var isHovered = isKeyHovered || isKeyDragging;
         Key.render(ctx, mazeCenter, gridSize, maze.flyWheel.angle, isHovered);
         ctx.restore();
     }
 
-    function renderRotateHandle() {
-        // rotate handle
-        if (!rotatePointer) {
-            return;
-        }
-
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        ctx.lineWidth = gridSize * 0.5;
-        var color = '#EEE';
-        ctx.strokeStyle = color;
-        ctx.fillStyle = color;
-
-        // pie slice
-        ctx.beginPath();
-        var pieRadius = maze.gridMax * gridSize;
-        ctx.moveTo(mazeCenter.x, mazeCenter.y);
-        var pieDirection = normalizeAngle(normalizeAngle(moveAngle) -
-            normalizeAngle(dragStartAngle)) > TAU / 2;
-        ctx.arc(mazeCenter.x, mazeCenter.y, pieRadius, dragStartAngle, moveAngle, pieDirection);
-        ctx.lineTo(mazeCenter.x, mazeCenter.y);
-        ctx.stroke();
-        ctx.fill();
-        ctx.closePath();
-    }
-
-    // -------------------------- completeLevel -------------------------- //
-
     completedLevels = [];
-
-    completedLevels.forEach(function(id) {
-        var item = levelList.querySelector('[data-id="' + id + '"]');
-        if (item) {
-            item.classList.add('did-complete');
-        }
-    });
 
     function completeLevel() {
         var KeyPosition = getKeyPosition();
-        levelList.querySelector('[data-id="' + maze.id + '"]').classList.add('did-complete');
         if (completedLevels.indexOf(maze.id) == -1) {
             completedLevels.push(maze.id);
         }
         if (getNextLevel()) {
-            setTimeout(function() {
-                nextLevelButton.classList.add('is-open');
-            }, 1000);
+            nextLevelButton.classList.add('is-open');
         } else {
             wincallback()
         }
@@ -502,16 +386,12 @@ function GameInit(wincallback) {
         return levels[index + 1];
     }
 
-    // -------------------------- next level -------------------------- //
-
     nextLevelButton.addEventListener('click', function() {
         var nextLevel = getNextLevel();
         if (nextLevel) {
             loadLevel(nextLevel);
         }
     });
-
-    // -------------------------- utils -------------------------- //
 
     function normalizeAngle(angle) {
         return ((angle % TAU) + TAU) % TAU;

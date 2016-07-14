@@ -77,7 +77,6 @@ proto.setAngle = function(theta) {
     this.applyForce(force);
 };
 
-
 var Key = {
     offset: {
         x: 0,
@@ -159,8 +158,6 @@ Key.setOffset = function(offset, orientation) {
     this.offset = offsetOrienter[orientation](offset);
 };
 
-// ----- render ----- //
-
 Key.render = function(ctx, mazeCenter, gridSize, angle, isHovered) {
     var x = this.peg.x * gridSize + this.offset.x;
     var y = this.peg.y * gridSize + this.offset.y;
@@ -171,10 +168,9 @@ Key.render = function(ctx, mazeCenter, gridSize, angle, isHovered) {
     ctx.rotate(angle);
     ctx.translate(x, y);
     ctx.rotate(-angle);
-    // ctx.fillStyle = 'hsla(330, 100%, 40%, 0.2)';
-    // var scale = isHovered ? 1 : 1;
+    var size = 64;
     ctx.scale(1, 1);
-    ctx.drawImage(drawing, -32, -32, 64, 64);
+    ctx.drawImage(drawing, -(size / 2), -(size / 2), size, size);
     ctx.restore();
 };
 
@@ -188,19 +184,7 @@ function Maze() {
 
 var proto = Maze.prototype;
 
-proto.loadText = function(text) {
-    // separate --- sections, YAML front matter first, maze source second;
-    var sections = text.split('---\n');
-    // YAML front matter
-    var frontMatter = {};
-    if (sections.length > 1) {
-        frontMatter = getFrontMatter(sections[0]);
-    }
-    // set instruction
-    var instructElem = document.querySelector('.instruction');
-    instructElem.innerHTML = frontMatter.instruction || '';
-
-    var mazeSrc = sections[sections.length - 1];
+proto.loadText = function(mazeSrc) {
     var lines = mazeSrc.split('\n');
     var gridCount = this.gridCount = lines[0].length;
     var gridMax = this.gridMax = (gridCount - 1) / 2;
@@ -220,43 +204,12 @@ proto.loadText = function(text) {
     }
 };
 
-function getFrontMatter(text) {
-    if (!text) {
-        return;
-    }
-    var frontMatter = {};
-    text.split('\n').forEach(function(line) {
-        if (!line) {
-            return;
-        }
-        var parts = line.split(':');
-        var key = parts[0].trim();
-        var value = parts[1].trim();
-        if (value === 'true') {
-            value = true; // boolean true
-        } else if (value === 'false') {
-            value = false; // boolean false
-        } else if (value.match(/$\d+(\.\d+)?^/)) {
-            value = parseFloat(value, 10); // number
-        } else if (value.match(/$\d+\.\d+^/)) {
-            value = parseFloat(value); // float
-        }
-        frontMatter[key] = value;
-    });
-    return frontMatter;
-}
-
-
-// -------------------------- parsers -------------------------- //
-
-// horizontal fixed segment
 proto['parse='] = proto.addFixedHorizSegment = function(pegX, pegY) {
     var segment = getHorizSegment(pegX, pegY, FixedSegment);
     this.connectSegment(segment);
     this.fixedSegments.push(segment);
 };
 
-// vertical fixed segment
 proto['parse!'] = proto.addFixedVertSegment = function(pegX, pegY) {
     var segment = getVertSegment(pegX, pegY, FixedSegment);
     this.connectSegment(segment);
@@ -287,69 +240,6 @@ function getVertSegment(pegX, pegY, Segment) {
     return new Segment(a, b);
 }
 
-// // ----- combos ----- //
-//
-// // free & fixed horizontal
-// proto['parse#'] = function(pegX, pegY) {
-//     this.addFreeHorizSegment(pegX, pegY);
-//     this.addFixedHorizSegment(pegX, pegY);
-// };
-//
-// // free & fixed vertical
-// proto.parse$ = function(pegX, pegY) {
-//     this.addFreeVertSegment(pegX, pegY);
-//     this.addFixedVertSegment(pegX, pegY);
-// };
-//
-// // pivot up + fixed vertical
-// proto.parseI = function(pegX, pegY) {
-//     this.addPivotUpSegment(pegX, pegY);
-//     this.addFixedVertSegment(pegX, pegY);
-// };
-//
-// // pivot left + fixed horizontal
-// proto.parseJ = function(pegX, pegY) {
-//     this.addPivotLeftSegment(pegX, pegY);
-//     this.addFixedHorizSegment(pegX, pegY);
-// };
-//
-// // pivot down + fixed vertical
-// proto.parseK = function(pegX, pegY) {
-//     this.addPivotDownSegment(pegX, pegY);
-//     this.addFixedVertSegment(pegX, pegY);
-// };
-//
-// // pivot right + fixed horizontal
-// proto.parseL = function(pegX, pegY) {
-//     this.addPivotRightSegment(pegX, pegY);
-//     this.addFixedHorizSegment(pegX, pegY);
-// };
-//
-// // pivot up + free vertical
-// proto.parseW = function(pegX, pegY) {
-//     this.addPivotUpSegment(pegX, pegY);
-//     this.addFreeVertSegment(pegX, pegY);
-// };
-//
-// // pivot left + free horizontal
-// proto.parseA = function(pegX, pegY) {
-//     this.addPivotLeftSegment(pegX, pegY);
-//     this.addFreeHorizSegment(pegX, pegY);
-// };
-//
-// // pivot down + free vertical
-// proto.parseS = function(pegX, pegY) {
-//     this.addPivotDownSegment(pegX, pegY);
-//     this.addFreeVertSegment(pegX, pegY);
-// };
-//
-// // pivot right + free horizontal
-// proto.parseD = function(pegX, pegY) {
-//     this.addPivotRightSegment(pegX, pegY);
-//     this.addFreeHorizSegment(pegX, pegY);
-// };
-
-// start position
 proto['parse@'] = function(pegX, pegY) {
     this.startPosition = {
         x: pegX,
@@ -358,15 +248,12 @@ proto['parse@'] = function(pegX, pegY) {
     Key.setPeg(this.startPosition, 'noon');
 };
 
-// goal position
 proto['parse*'] = function(pegX, pegY) {
     this.goalPosition = {
         x: pegX,
         y: pegY
     };
 };
-
-// --------------------------  -------------------------- //
 
 proto.updateItemGroups = function() {
     var itemGroups = {};
@@ -384,7 +271,7 @@ var orientations = ['noon', 'three', 'six', 'nine'];
 proto.connectSegment = function(segment) {
     orientations.forEach(function(orientation) {
         var line = segment[orientation];
-        // check that pegs are not out of maze
+
         if (this.getIsPegOut(line.a) || this.getIsPegOut(line.b)) {
             return;
         }
@@ -399,10 +286,9 @@ proto.getIsPegOut = function(peg) {
 };
 
 proto.connectPeg = function(segment, orientation, peg) {
-    // flatten the key
     var key = orientation + ':' + peg.x + ',' + peg.y;
     var connection = this.connections[key];
-    // create connections array if not already there
+
     if (!connection) {
         connection = this.connections[key] = [];
     }
@@ -410,8 +296,6 @@ proto.connectPeg = function(segment, orientation, peg) {
         connection.push(segment);
     }
 };
-
-// --------------------------  -------------------------- //
 
 proto.update = function() {
     this.flyWheel.integrate();
@@ -430,7 +314,6 @@ proto.update = function() {
 };
 
 proto.attractAlignFlyWheel = function() {
-    // attract towards
     var angle = this.flyWheel.angle;
     var target;
     if (angle < TAU / 8) {
@@ -462,29 +345,26 @@ proto.render = function(ctx, center, gridSize, angle) {
     var gridMax = this.gridMax;
     angle = orientationAngle !== undefined ? orientationAngle : angle || 0;
 
-
     ctx.save();
     ctx.translate(center.x, center.y);
-    // fixed segments
+
     this.fixedSegments.forEach(function(segment) {
         segment.render(ctx, center, gridSize);
     });
-    // rotation
+
     ctx.rotate(angle);
 
     ctx.lineWidth = gridSize * 0.2;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    // axle
+
     ctx.lineWidth = gridSize * 0.2;
     ctx.strokeStyle = 'hsla(0, 0%, 50%, 0.2)';
-    // strokeCircle( ctx, 0, 0, gridSize/2 );
     ctx.save();
     ctx.rotate(Math.PI / 4);
     ctx.strokeRect(-gridSize / 5, -gridSize / 5, gridSize * 2 / 5, gridSize * 2 / 5);
     ctx.restore();
 
-    // pegs
     for (var pegY = -gridMax; pegY <= gridMax; pegY += 2) {
         for (var pegX = -gridMax; pegX <= gridMax; pegX += 2) {
             var pegXX = pegX * gridSize;

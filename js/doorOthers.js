@@ -14,6 +14,7 @@ function doorOpen(door) {
 
 function Door0(number, onUnlock) {
     DoorBase.apply(this, arguments);
+    doorOpen(this)
     var buttons = [
         this.popup.querySelector('.door-riddle__button_0'),
         this.popup.querySelector('.door-riddle__button_1'),
@@ -27,11 +28,13 @@ function Door0(number, onUnlock) {
     }.bind(this));
 
     function _onButtonPointerDown(e) {
+        console.log(e);
         e.target.classList.add('door-riddle__button_pressed');
         checkCondition.apply(this);
     }
 
     function _onButtonPointerUp(e) {
+        console.log(e);
         console.log(!('ontouchstart' in document.documentElement));
         if ('ontouchstart' in document.documentElement) {
             e.target.classList.remove('door-riddle__button_pressed');
@@ -68,9 +71,10 @@ Door0.prototype.constructor = DoorBase;
  * @param {Function} onUnlock
  */
 function Door1(number, onUnlock) {
+    doorOpen(this)
     DoorBase.apply(this, arguments);
     this.state = {
-        magicWord: true
+        magicWord: false
     }
     var door = this;
     // ==== Напишите свой код для открытия второй двери здесь ====
@@ -84,17 +88,15 @@ function Door1(number, onUnlock) {
         inputRange.min = 0;
         inputRange.max = maxValue;
 
-        function unlockStartHandler() {
-            console.log(this.value);
+        function unlockStartHandler(event) {
             window.cancelAnimationFrame(rafID);
             if (this.value) {
                 currValue = +this.value;
             }
         }
 
-        function unlockEndHandler() {
+        function unlockEndHandler(event) {
             currValue = +this.value;
-            console.log(this.value);
             if(currValue >= maxValue) {
                 successHandler();
             }
@@ -120,23 +122,16 @@ function Door1(number, onUnlock) {
             inputRange.value = 0;
         };
 
-        function unlockMoveHandler() {
-            console.log(this.value);
-        }
-        // inputRange.addEventListener('pointerdown', unlockStartHandler);
-        // inputRange.addEventListener('pointerup', unlockEndHandler);
-        // inputRange.addEventListener('pointercancel', unlockEndHandler);
-        // inputRange.addEventListener('pointerleave', unlockEndHandler);
-        inputRange.addEventListener('mousedown', unlockStartHandler, false);
-        inputRange.addEventListener('mousestart', unlockStartHandler, false);
-        inputRange.addEventListener('mouseup', unlockEndHandler, false);
-        inputRange.addEventListener('touchend', unlockEndHandler, false);
+        inputRange.addEventListener('pointerdown', unlockStartHandler);
+        inputRange.addEventListener('pointerup', unlockEndHandler);
+        inputRange.addEventListener('pointercancel', unlockEndHandler);
+        inputRange.addEventListener('pointerleave', unlockEndHandler);
     }
 
     function initRecognizer() {
         var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
-            return;
+            door.state.magicWord = true;
         } else {
             recognizer = new SpeechRecognition();
             recognizer.lang = 'ru-RU';
@@ -147,10 +142,6 @@ function Door1(number, onUnlock) {
         }
     }
 
-    function btnInit() {
-        var b = this.popup.querySelector('.door-magic__button');
-    }
-
     function recognizerHandler(e) {
         var index = e.resultIndex;
         var magicWord = 'сезам откройся';
@@ -158,15 +149,12 @@ function Door1(number, onUnlock) {
         console.log(result);
         if (result.toLowerCase().indexOf(magicWord)+1 !== 0) {
             door.state.magicWord = true;
-            alert('я услышал волшебное слово');
             recognizer.stop();
+            alert('я услышал волшебное слово');
             return;
         }
     }
-    function activateFallback() {
-        var btn = document.createElement('div');
-        btn.className = "door-riddle__button door-riddle__button_magic"
-    }
+
     this.openPopup = function() {
         this.popup.classList.remove('popup_hidden');
         initLatchHandler();
@@ -186,13 +174,13 @@ Door1.prototype.constructor = DoorBase;
  */
 function Door2(number, onUnlock) {
     DoorBase.apply(this, arguments);
+    doorOpen(this)
     this.state = {
         light: 0,
         currentStep: 0
     }
     var door = this;
     // ==== Напишите свой код для открытия третей двери здесь ====
-    // Для примера дверь откроется просто по клику на неё
     buttons = [];
     [].forEach.call(this.popup.querySelector('.door-step-wrapper').querySelectorAll('.door-step__button'), function(b) {
         buttons.push({
@@ -206,7 +194,6 @@ function Door2(number, onUnlock) {
     })
     function _onButtonPointerDown(e) {
         var currentBtnStep = parseInt(e.target.getAttribute('data-step')) || 0;
-        console.log(currentBtnStep,door.state.currentStep);
         if (currentBtnStep === door.state.currentStep) {
             e.target.classList.add('door-step__button_pressed');
             checkCondition.apply(this);
@@ -243,10 +230,12 @@ function Door2(number, onUnlock) {
         door.state.light = e.value;
         renderLight()
     }
+
+    var indicator = door.popup.querySelector('.door-step__indicator');
+    var wrap = door.popup.querySelector('.door-step-wrapper');
+
     function renderLight() {
         var value = door.state.light;
-        var indicator = door.popup.querySelector('.door-step__indicator');
-        var wrap = door.popup.querySelector('.door-step-wrapper');
         if (value < 10) {
             wrap.classList.remove('door-step-wrapper--light-on');
         } else {
